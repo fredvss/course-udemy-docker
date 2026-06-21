@@ -1,3 +1,15 @@
+# 08 — Restart Policies
+
+Container de teste que falha após 5 segundos (`exit 1`), ideal para experimentar as políticas de reinício do Docker.
+
+## Build
+
+```bash
+docker build -t restart-test .
+```
+
+---
+
 # Docker Restart Policies - Guia Prático
 
 ## O que são Restart Policies?

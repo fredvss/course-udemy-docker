@@ -1,4 +1,23 @@
-# Docker - Histórico de Comandos, CMD e ENTRYPOINT
+# 04 — Node.js com VOLUME (CMD padrão)
+
+Dockerfile Node.js com `VOLUME` e `CMD` simples — base para entender a diferença entre `CMD` e `ENTRYPOINT` (demonstrado no módulo [03-build-node-volume](../03-build-node-volume/)).
+
+## Build e execução
+
+```bash
+docker build -t node-entrypoint .
+docker run --rm -p 3000:3000 node-entrypoint
+```
+
+Sobrescrever o comando padrão:
+
+```bash
+docker run --rm node-entrypoint node -e "console.log('override')"
+```
+
+---
+
+# CMD, ENTRYPOINT e histórico de comandos Docker
 
 ## 1. Buscar comandos já executados
 
