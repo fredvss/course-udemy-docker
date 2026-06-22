@@ -13,13 +13,13 @@ WORKDIR /var/nodeapp
 COPY app.js .
 RUN chown -R nodeapp:nodeapp /var/nodeapp
 
-ARG PORT=3000
-ENV PORT=${PORT}
+ARG PORT
+ENV PORT=${PORT:-3000}
 
 EXPOSE ${PORT}
 
-ARG VERSION=1.0.0
-ENV VERSION=${VERSION}
+ARG VERSION
+ENV VERSION=${VERSION:-1.0.0}
 
 USER nodeapp
 

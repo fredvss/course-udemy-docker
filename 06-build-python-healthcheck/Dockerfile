@@ -14,13 +14,13 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY app.py .
 RUN chown -R pythonapp:pythonapp /flaskapp
 
-ARG PORT=5000
-ENV PORT=${PORT}
+ARG PORT
+ENV PORT=${PORT:-5000}
 
 EXPOSE ${PORT}
 
-ARG VERSION=1.0.0
-ENV VERSION=${VERSION}
+ARG VERSION
+ENV VERSION=${VERSION:-1.0.0}
 
 USER pythonapp
 

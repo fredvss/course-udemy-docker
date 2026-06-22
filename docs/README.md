@@ -15,7 +15,7 @@ Base teórica sobre como containers funcionam no Linux:
 
 | Documento | Relacionado a |
 |-----------|---------------|
-| [healthcheck.md](guias/healthcheck.md) | [05-build-node-healthcheck](../05-build-node-healthcheck/), [06-build-python-healthcheck](../06-build-python-healthcheck/) |
+| [healthcheck.md](guias/healthcheck.md) | [05-build-node-healthcheck](../05-build-node-healthcheck/), [06-build-python-healthcheck](../06-build-python-healthcheck/), [10-docker-compose-ghost](../10-docker-compose-ghost/) |
 
 ## Documentação nos módulos
 
@@ -25,6 +25,8 @@ Alguns tópicos ficam junto do código que os demonstra:
 |--------|-----------|
 | [04-build-node-entrypoint](../04-build-node-entrypoint/) | CMD, ENTRYPOINT e histórico de comandos Docker |
 | [08-restart-policies](../08-restart-policies/) | Restart policies — guia completo com exemplos |
+| [09-docker-compose](../09-docker-compose/) | Compose básico — múltiplos serviços |
+| [10-docker-compose-ghost](../10-docker-compose-ghost/) | Ghost + MySQL — healthcheck e `service_healthy` |
 
 ## Recursos
 
@@ -42,6 +44,8 @@ course-udemy-docker/
 ├── 02-build-node/            ← primeiro Dockerfile
 ├── …
 ├── 08-restart-policies/      ← restart policies (+ README)
+├── 09-docker-compose/        ← compose básico (+ README)
+├── 10-docker-compose-ghost/  ← Ghost + MySQL (+ README)
 └── docs/
     ├── README.md             ← este arquivo
     ├── fundamentos/          ← teoria Linux/containers

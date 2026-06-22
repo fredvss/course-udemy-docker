@@ -214,3 +214,7 @@ restart: unless-stopped
 | on-failure:N | Sim (até N vezes) | Não | Sim |
 | always | Sim | Sim | Sim |
 | unless-stopped | Sim | Sim | Sim, exceto se parado manualmente |
+
+## Próximo passo
+
+[09-docker-compose](../09-docker-compose/) — orquestrar múltiplos serviços com Docker Compose.
