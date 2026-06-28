@@ -1,0 +1,133 @@
+{
+  "_comment": "Perfil seccomp restrito para containers de aplicação web (HTTP/HTTPS).",
+  "_comment2": "Baseado no perfil padrão do Docker, com bloqueios adicionais em:",
+  "_comment3": "  - ptrace e process_vm_*  (impede debugging/injeção entre processos)",
+  "_comment4": "  - unshare/setns          (impede criação/entrada em novos namespaces)",
+  "_comment5": "  - mount/umount2          (impede montagens dentro do container)",
+  "_comment6": "  - syslog / kexec_load    (impede acesso ao log do kernel e kexec)",
+
+  "defaultAction": "SCMP_ACT_ERRNO",
+
+  "archMap": [
+    {
+      "architecture": "SCMP_ARCH_X86_64",
+      "subArchitectures": ["SCMP_ARCH_X86", "SCMP_ARCH_X32"]
+    },
+    {
+      "architecture": "SCMP_ARCH_AARCH64",
+      "subArchitectures": ["SCMP_ARCH_ARM"]
+    }
+  ],
+
+  "syscalls": [
+    {
+      "_comment": "Syscalls essenciais para qualquer processo",
+      "names": [
+        "read", "write", "readv", "writev",
+        "open", "openat", "openat2", "close",
+        "stat", "fstat", "lstat", "fstatat",
+        "poll", "ppoll", "select", "pselect6",
+        "lseek", "mmap", "mprotect", "munmap", "brk",
+        "madvise", "mlock", "munlock", "mincore",
+        "ioctl", "fcntl", "dup", "dup2", "dup3",
+        "pipe", "pipe2", "eventfd", "eventfd2",
+        "epoll_create", "epoll_create1", "epoll_ctl", "epoll_wait", "epoll_pwait",
+        "inotify_init", "inotify_init1", "inotify_add_watch", "inotify_rm_watch",
+        "sendfile", "splice", "tee",
+        "read", "pread64", "pwrite64", "readahead"
+      ],
+      "action": "SCMP_ACT_ALLOW"
+    },
+    {
+      "_comment": "Processos e threads",
+      "names": [
+        "clone", "fork", "vfork", "execve", "execveat",
+        "wait4", "waitid", "exit", "exit_group",
+        "getpid", "getppid", "gettid",
+        "getuid", "geteuid", "getgid", "getegid",
+        "getgroups", "setgroups",
+        "setuid", "setgid", "setresuid", "setresgid",
+        "capget", "capset",
+        "prctl", "arch_prctl",
+        "futex", "set_robust_list", "get_robust_list",
+        "nanosleep", "clock_nanosleep", "clock_gettime", "clock_getres",
+        "gettimeofday", "time", "times",
+        "getrlimit", "setrlimit", "prlimit64",
+        "getrusage"
+      ],
+      "action": "SCMP_ACT_ALLOW"
+    },
+    {
+      "_comment": "Rede (TCP/UDP — sem raw sockets)",
+      "names": [
+        "socket", "connect", "accept", "accept4",
+        "bind", "listen", "getsockname", "getpeername",
+        "setsockopt", "getsockopt",
+        "sendto", "recvfrom", "sendmsg", "recvmsg",
+        "sendmmsg", "recvmmsg",
+        "shutdown",
+        "getaddrinfo"
+      ],
+      "action": "SCMP_ACT_ALLOW"
+    },
+    {
+      "_comment": "Sistema de arquivos",
+      "names": [
+        "getcwd", "chdir",
+        "rename", "renameat", "renameat2",
+        "mkdir", "mkdirat", "rmdir",
+        "link", "linkat", "unlink", "unlinkat",
+        "symlink", "symlinkat", "readlink", "readlinkat",
+        "chmod", "fchmod", "fchmodat",
+        "chown", "fchown", "lchown", "fchownat",
+        "truncate", "ftruncate",
+        "statfs", "fstatfs",
+        "access", "faccessat", "faccessat2",
+        "getdents", "getdents64",
+        "sync", "fsync", "fdatasync", "syncfs",
+        "fallocate"
+      ],
+      "action": "SCMP_ACT_ALLOW"
+    },
+    {
+      "_comment": "Sinais",
+      "names": [
+        "kill", "tgkill", "tkill",
+        "rt_sigaction", "rt_sigprocmask", "rt_sigreturn",
+        "rt_sigsuspend", "rt_sigpending", "rt_sigqueueinfo",
+        "sigaltstack", "signalfd", "signalfd4"
+      ],
+      "action": "SCMP_ACT_ALLOW"
+    },
+    {
+      "_comment": "Miscelânea necessária para runtimes (Go, JVM, etc.)",
+      "names": [
+        "sched_yield", "sched_getaffinity", "sched_setaffinity",
+        "sched_getparam", "sched_getscheduler",
+        "getrandom", "uname", "sysinfo",
+        "timerfd_create", "timerfd_settime", "timerfd_gettime",
+        "memfd_create",
+        "set_tid_address",
+        "restart_syscall"
+      ],
+      "action": "SCMP_ACT_ALLOW"
+    },
+    {
+      "_comment": "BLOQUEADOS EXPLICITAMENTE — listados aqui para documentação.",
+      "_comment2": "O defaultAction ERRNO já os bloquearia, mas esta lista torna o intent claro.",
+      "names": [
+        "ptrace",
+        "process_vm_readv", "process_vm_writev",
+        "unshare", "setns",
+        "mount", "umount2",
+        "syslog",
+        "kexec_load", "kexec_file_load",
+        "create_module", "init_module", "finit_module", "delete_module",
+        "iopl", "ioperm",
+        "perf_event_open",
+        "bpf"
+      ],
+      "action": "SCMP_ACT_ERRNO"
+    }
+  ]
+}
