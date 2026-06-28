@@ -1,6 +1,18 @@
 services:
   flaskapp:
-    image: nginx #Fazer push do modulo 06-build-python-healthcheck como health e unhealthy para dockerhub e testar rolling update (swarm não faz deploy de containers unhealthy)
+    # --- Passo 1: deploy inicial saudável ---
+    image: mateusmuller2/flaskapp:healthy
+    #
+    # --- Passo 2: tentar atualizar para a versão não saudável ---
+    # O Swarm executa o healthcheck de cada nova task antes de promovê-la.
+    # Como a imagem :unhealthy falha no healthcheck, o Swarm interrompe o
+    # rolling update e executa o rollback automático para :healthy.
+    # image: mateusmuller2/flaskapp:unhealthy
+    #
+    # --- Passo 3: atualizar para nginx (imagem saudável) ---
+    # O rolling update avança de 2 em 2 réplicas (parallelism: 2).
+    # Cada par só é promovido após passar no healthcheck.
+    # image: nginx
     networks:
       - flaskapp
     ports:
@@ -8,9 +20,9 @@ services:
     deploy:
       replicas: 10
       update_config:
-        parallelism: 2
-        failure_action: rollback  
-        order: start-first
+        parallelism: 2          # atualiza 2 réplicas por vez
+        failure_action: rollback # reverte tudo se alguma task falhar o healthcheck
+        order: start-first       # sobe a nova task antes de derrubar a antiga (zero downtime)
 
 networks:
   flaskapp:
