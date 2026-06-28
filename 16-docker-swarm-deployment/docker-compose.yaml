@@ -1,0 +1,21 @@
+services:
+  flaskapp:
+    image: nginx #Fazer push do modulo 06-build-python-healthcheck como health e unhealthy para dockerhub e testar rolling update (swarm não faz deploy de containers unhealthy)
+    networks:
+      - flaskapp
+    ports:
+      - 5000:5000
+    deploy:
+      replicas: 10
+      update_config:
+        parallelism: 2
+        failure_action: rollback  
+        order: start-first
+
+networks:
+  flaskapp:
+    driver: overlay
+    attachable: true
+    name: flaskapp
+    driver_opts:
+      encrypted: "true"

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # 11-docker-swarm — comandos do laboratório
 # Ver README.md para arquitetura e teoria.
+# Módulo autocontido — inclui Vagrantfile e bootstrap do cluster Swarm.
 
 set -euo pipefail
 

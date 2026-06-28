@@ -1,0 +1,55 @@
+services:
+
+  ghost:
+    image: ghost:5-alpine
+    ports:
+      - 8080:2368
+    environment:
+      database__client: mysql
+      database__connection__host: db
+      database__connection__user: root
+      database__connection__password: F6keyX3Ok5mN
+      database__connection__database: ghost
+    volumes:
+      - ghost:/var/lib/ghost/content
+    networks:
+      - ghost-network
+      - ghost-mysql-network
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        max_attempts: 5
+
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: F6keyX3Ok5mN
+      MYSQL_DATABASE: ghost
+    volumes:
+      - db:/var/lib/mysql
+    networks:
+      - ghost-mysql-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-pF6keyX3Ok5mN"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        max_attempts: 5
+
+volumes:
+  ghost:
+    name: ghost-data
+  db:
+    name: ghost-mysql-data
+
+networks:
+  ghost-network:
+    driver: overlay
+  ghost-mysql-network:
+    driver: overlay

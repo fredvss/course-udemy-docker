@@ -8,7 +8,8 @@ Material prático de um curso de Docker: scripts de isolamento Linux, builds pro
 - [Docker Engine](https://docs.docker.com/engine/install/) instalado
 - [Docker Compose v2](https://docs.docker.com/compose/) (incluso no Docker Desktop e nas instalações recentes do Engine)
 - Para o módulo 01: `sudo`, `debootstrap` ou acesso root
-- Para os módulos 11 e 12: [Vagrant](https://www.vagrantup.com/) e [VirtualBox](https://www.virtualbox.org/) (~3 GB de RAM livre)
+- Para os módulos 11, 12, 13 e 14: [Vagrant](https://www.vagrantup.com/) e [VirtualBox](https://www.virtualbox.org/) (~3 GB de RAM livre)
+- Para o módulo 15: ~4 GB de RAM livre (VM NFS adicional)
 
 ## Estrutura do repositório
 
@@ -26,6 +27,9 @@ Material prático de um curso de Docker: scripts de isolamento Linux, builds pro
 | [10-docker-compose-ghost](10-docker-compose-ghost/) | Compose avançado — Ghost + MySQL, volumes, redes, healthcheck | [README](10-docker-compose-ghost/README.md) |
 | [11-docker-swarm](11-docker-swarm/) | Swarm com Vagrant — cluster, `DOCKER_HOST`, scale de serviços | [README](11-docker-swarm/README.md) |
 | [12-docker-swarm-ha-proxy](12-docker-swarm-ha-proxy/) | Swarm — VIP vs DNSRR, HAProxy global e balanceamento | [README](12-docker-swarm-ha-proxy/README.md) |
+| [13-docker-swarm-dns](13-docker-swarm-dns/) | Swarm — BIND9, DNS round robin e nginx via routing mesh | [README](13-docker-swarm-dns/README.md) |
+| [14-docker-swarm-stacks](14-docker-swarm-stacks/) | Swarm Stacks — Ghost + MySQL com redes overlay e volumes persistentes | [README](14-docker-swarm-stacks/README.md) |
+| [15-docker-swarm-nfs](15-docker-swarm-nfs/) | Swarm — WordPress em HA com volume NFS compartilhado e placement constraints | [README](15-docker-swarm-nfs/README.md) |
 
 ## Documentação
 
@@ -41,6 +45,7 @@ Conceitos teóricos que sustentam o restante do curso:
 ### Guias práticos
 
 - [Docker HEALTHCHECK — guia prático](docs/guias/healthcheck.md) — usado nos módulos 05 e 06
+- [Subir o cluster Swarm](docs/guias/swarm-cluster-setup.md) — bootstrap compartilhado dos módulos 11, 12 e 13
 
 ### Recursos extras
 
@@ -61,9 +66,17 @@ Conceitos teóricos que sustentam o restante do curso:
 09-docker-compose → 10-docker-compose-ghost
     ↓
 11-docker-swarm → 12-docker-swarm-ha-proxy
+              ↘
+                13-docker-swarm-dns
+                    ↓
+              14-docker-swarm-stacks
+                    ↓
+              15-docker-swarm-nfs
 ```
 
-Leia os fundamentos em `docs/fundamentos/` a qualquer momento — eles complementam os exercícios práticos. O módulo 12 depende do cluster configurado no 11.
+Os módulos **11, 12 e 13** são independentes entre si — cada um inclui o mesmo `Vagrantfile` e os passos para subir o cluster. Guia compartilhado: [docs/guias/swarm-cluster-setup.md](docs/guias/swarm-cluster-setup.md).
+
+Leia os fundamentos em `docs/fundamentos/` a qualquer momento — eles complementam os exercícios práticos.
 
 ## Comandos rápidos
 
@@ -91,22 +104,31 @@ cd ../10-docker-compose-ghost
 docker compose up -d
 ```
 
-Docker Swarm (módulos 11 e 12):
+Docker Swarm (módulos 11–13 — cada um é autocontido):
 
 ```bash
-cd 11-docker-swarm
+cd 11-docker-swarm    # ou 12-docker-swarm-ha-proxy / 13-docker-swarm-dns
 vagrant up
-vagrant ssh swarm-1   # manager — ver README para init do Swarm
+# ver README do módulo ou docs/guias/swarm-cluster-setup.md
 
-export DOCKER_HOST=192.168.56.11:2375   # cliente remoto
+export DOCKER_HOST=192.168.56.11:2375
 docker node ls
-docker service ls
 ```
 
+Docker Swarm Stacks (módulos 14 e 15):
+
 ```bash
-cd 12-docker-swarm-ha-proxy
-# cluster do módulo 11 em execução
-# ver README para rede overlay, nginx (dnsrr) e HAProxy global
+# Módulo 14 — Ghost + MySQL
+cd 14-docker-swarm-stacks
+export DOCKER_HOST=192.168.56.11:2375
+docker stack deploy -c docker-compose.yaml ghost-stack
+
+# Módulo 15 — WordPress em HA com NFS
+cd 15-docker-swarm-nfs
+cd nfs && vagrant up    # VM do servidor NFS
+cd ../swarm && vagrant up
+export DOCKER_HOST=192.168.56.11:2375
+docker stack deploy -c wordpress/docker-compose.yaml wp-stack
 ```
 
 Portainer (opcional, na máquina host):

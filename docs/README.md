@@ -16,6 +16,7 @@ Base teórica sobre como containers funcionam no Linux:
 | Documento | Relacionado a |
 |-----------|---------------|
 | [healthcheck.md](guias/healthcheck.md) | [05-build-node-healthcheck](../05-build-node-healthcheck/), [06-build-python-healthcheck](../06-build-python-healthcheck/), [10-docker-compose-ghost](../10-docker-compose-ghost/) |
+| [swarm-cluster-setup.md](guias/swarm-cluster-setup.md) | [11-docker-swarm](../11-docker-swarm/), [12-docker-swarm-ha-proxy](../12-docker-swarm-ha-proxy/), [13-docker-swarm-dns](../13-docker-swarm-dns/) |
 
 ## Documentação nos módulos
 
@@ -29,6 +30,7 @@ Alguns tópicos ficam junto do código que os demonstra:
 | [10-docker-compose-ghost](../10-docker-compose-ghost/) | Ghost + MySQL — healthcheck e `service_healthy` |
 | [11-docker-swarm](../11-docker-swarm/) | Swarm com Vagrant — arquitetura, portas e `DOCKER_HOST` |
 | [12-docker-swarm-ha-proxy](../12-docker-swarm-ha-proxy/) | VIP vs DNSRR, HAProxy global e balanceamento |
+| [13-docker-swarm-dns](../13-docker-swarm-dns/) | BIND9, DNS round robin e nginx via routing mesh |
 
 ## Recursos
 
@@ -50,6 +52,7 @@ course-udemy-docker/
 ├── 10-docker-compose-ghost/  ← Ghost + MySQL (+ README)
 ├── 11-docker-swarm/          ← Swarm com Vagrant (+ README)
 ├── 12-docker-swarm-ha-proxy/ ← VIP, DNSRR, HAProxy (+ README)
+├── 13-docker-swarm-dns/      ← BIND, DNS RR, routing mesh (+ README)
 └── docs/
     ├── README.md             ← este arquivo
     ├── fundamentos/          ← teoria Linux/containers

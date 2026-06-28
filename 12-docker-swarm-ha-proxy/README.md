@@ -11,12 +11,6 @@ Extensão do laboratório Swarm ([módulo 11](../11-docker-swarm/)): compara **e
 - Publicação de porta em modo **host** (`mode=host`)
 - Balanceamento real entre tasks (não apenas routing mesh do Swarm)
 
-## Pré-requisitos
-
-- Cluster Swarm do [módulo 11](../11-docker-swarm/) em execução
-- `DOCKER_HOST=192.168.56.11:2375` configurado no cliente
-- Arquivo [haproxy.cfg](haproxy.cfg) copiado para `/etc/haproxy/haproxy.cfg` em **cada nó**
-
 ## Arquitetura
 
 ### Visão geral
@@ -67,6 +61,8 @@ DNSRR:
 
 > Para balanceamento externo com HAProxy, use **dnsrr**. Com VIP, o HAProxy veria um único IP e o Swarm faria o balanceamento por baixo — anulando o controle do proxy.
 
+![Modos de deploy do HAProxy e VIP vs DNSRR](12-docker-swarm-ha-proxy-differences.png)
+
 ### Por que `tasks.nginx-service`?
 
 No Swarm, o nome `nginx-service` resolve para o endpoint do serviço (VIP ou entrada do serviço). O prefixo **`tasks.`** resolve diretamente para os IPs de **cada task em execução** — necessário para o `server-template` do HAProxy descobrir backends dinamicamente quando réplicas sobem/descem.
@@ -80,6 +76,8 @@ No Swarm, o nome `nginx-service` resolve para o endpoint do serviço (VIP ou ent
 | `bind` mount `/etc/haproxy` | Config local em cada nó (mesmo arquivo em todos) |
 
 Com isso, `curl` em qualquer IP de nó (`192.168.56.11`, `.12`, `.13`) atinge o HAProxy **daquele nó**, que balanceia entre as tasks nginx na overlay.
+
+![Arquitetura HAProxy em produção — camadas de roteamento](12-docker-swarm-ha-proxy-prod-friendly.png)
 
 ### Resolução DNS no HAProxy
 
@@ -98,9 +96,73 @@ server-template nginx- 20 tasks.nginx-service:80 \
 
 Stats disponíveis em `http://<qualquer-nó>:80/my-stats`.
 
-## Passo a passo
+## Pré-requisitos
 
-Comandos organizados em [commands.bash](commands.bash).
+- [Vagrant](https://www.vagrantup.com/) e [VirtualBox](https://www.virtualbox.org/)
+- ~3 GB de RAM livre (3 VMs × 1 GB)
+- Arquivo [haproxy.cfg](haproxy.cfg) copiado para `/etc/haproxy/haproxy.cfg` em **cada nó** (passo do lab)
+
+> Este módulo é **autocontido**: inclui `Vagrantfile` e todos os passos para subir o cluster. Não é necessário ter feito o [módulo 11](../11-docker-swarm/) antes — a infraestrutura é a mesma.
+
+## Subir o cluster Swarm
+
+Guia detalhado também em [docs/guias/swarm-cluster-setup.md](../docs/guias/swarm-cluster-setup.md).
+
+### 1. VMs
+
+```bash
+cd 12-docker-swarm-ha-proxy
+vagrant up
+```
+
+| VM | Hostname | IP | Papel |
+|----|----------|-----|-------|
+| `swarm-1` | `node-1` | `192.168.56.11` | Manager |
+| `swarm-2` | `node-2` | `192.168.56.12` | Worker |
+| `swarm-3` | `node-3` | `192.168.56.13` | Worker |
+
+### 2. Inicializar o Swarm (manager — `swarm-1`)
+
+```bash
+vagrant ssh swarm-1
+docker swarm init --advertise-addr 192.168.56.11
+docker node ls
+```
+
+### 3. Expor API Docker na porta 2375 (manager)
+
+Editar `/lib/systemd/system/docker.service`:
+
+```ini
+ExecStart=/usr/bin/dockerd -H fd:// -H tcp://0.0.0.0:2375
+```
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl restart docker
+ss -lnp | grep 2375
+```
+
+### 4. Workers (`swarm-2` e `swarm-3`)
+
+No manager: `docker swarm join-token worker`
+
+Em cada worker:
+
+```bash
+docker swarm join --token <WORKER_TOKEN> 192.168.56.11:2377
+```
+
+### 5. Cliente remoto (máquina host)
+
+```bash
+export DOCKER_HOST=192.168.56.11:2375
+docker node ls   # deve listar 3 nós
+```
+
+## Passo a passo do laboratório
+
+Comandos organizados em [commands.bash](commands.bash). Com o cluster no ar, continue com:
 
 ### 1. Rede overlay
 
@@ -198,12 +260,21 @@ docker service logs haproxy-service --raw --tail 100
 ## Limpeza
 
 ```bash
+export DOCKER_HOST=192.168.56.11:2375
 docker service rm haproxy-service nginx-service
 docker network rm ha-proxy
+
+vagrant halt          # desliga VMs
+vagrant destroy -f    # remove VMs
 ```
+
+## Próximo passo
+
+- [Módulo 13 — DNS externo (BIND) + nginx](../13-docker-swarm-dns/) — abordagem alternativa: balanceamento via DNS round robin nos IPs dos nós + routing mesh do Swarm (sem HAProxy).
 
 ## Referências
 
+- [Subir o cluster Swarm](../docs/guias/swarm-cluster-setup.md) — guia compartilhado (módulos 11, 12 e 13)
 - [Docker Swarm — routing mesh e endpoint modes](https://docs.docker.com/engine/swarm/networking/)
 - [Publish ports — host mode](https://docs.docker.com/engine/swarm/services/#publish-a-services-ports)
 - [HAProxy server-template + DNS resolvers](https://www.haproxy.com/documentation/haproxy-configuration-tutorials/load-balancing/simple-configuration/)

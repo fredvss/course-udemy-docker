@@ -119,19 +119,28 @@ Alternativa moderna: `docker context` (sem editar o `docker.service`).
 
 ## Pré-requisitos
 
-- [Vagrant](https://www.vagrantup.com/)
-- [VirtualBox](https://www.virtualbox.org/)
+- [Vagrant](https://www.vagrantup.com/) e [VirtualBox](https://www.virtualbox.org/)
 - ~3 GB de RAM livre (3 VMs × 1 GB)
 - Rede `192.168.56.0/24` disponível (padrão do Vagrant)
 
-## Subir o ambiente
+> Este módulo é **autocontido**: inclui `Vagrantfile` e todos os passos para subir o cluster. Os módulos [12](../12-docker-swarm-ha-proxy/) e [13](../13-docker-swarm-dns/) usam a mesma infraestrutura e podem ser feitos de forma independente.
+
+## Subir o cluster Swarm
+
+Guia detalhado também em [docs/guias/swarm-cluster-setup.md](../docs/guias/swarm-cluster-setup.md).
+
+### 1. VMs
 
 ```bash
 cd 11-docker-swarm
 vagrant up
 ```
 
-Acesso SSH:
+| VM | Hostname | IP | Papel |
+|----|----------|-----|-------|
+| `swarm-1` | `node-1` | `192.168.56.11` | Manager |
+| `swarm-2` | `node-2` | `192.168.56.12` | Worker |
+| `swarm-3` | `node-3` | `192.168.56.13` | Worker |
 
 ```bash
 vagrant ssh swarm-1   # manager
@@ -139,26 +148,17 @@ vagrant ssh swarm-2   # worker
 vagrant ssh swarm-3   # worker
 ```
 
-## Passo a passo do laboratório
-
-Os comandos completos estão em [commands.bash](commands.bash). Resumo:
-
-### 1. Inicializar o Swarm (manager — `node-1`)
+### 2. Inicializar o Swarm (manager — `swarm-1`)
 
 ```bash
 docker swarm init --advertise-addr 192.168.56.11
 docker node ls
-```
-
-Verificar porta de gerenciamento:
-
-```bash
 sudo ss -lnp | grep 2377
 ```
 
-### 2. Expor API Docker na porta 2375 (manager)
+### 3. Expor API Docker na porta 2375 (manager)
 
-Editar `/lib/systemd/system/docker.service` e adicionar `-H tcp://0.0.0.0:2375` ao `ExecStart` (ver seção teórica acima). Depois:
+Editar `/lib/systemd/system/docker.service` e adicionar `-H tcp://0.0.0.0:2375` ao `ExecStart` (ver seção teórica abaixo). Depois:
 
 ```bash
 sudo systemctl daemon-reload
@@ -166,9 +166,9 @@ sudo systemctl restart docker
 ss -lnp | grep 2375
 ```
 
-### 3. Workers entram no cluster (`node-2` e `node-3`)
+### 4. Workers entram no cluster (`swarm-2` e `swarm-3`)
 
-No manager, obter o token:
+No manager:
 
 ```bash
 docker swarm join-token worker
@@ -180,14 +180,16 @@ Em cada worker:
 docker swarm join --token <WORKER_TOKEN> 192.168.56.11:2377
 ```
 
-### 4. Cliente remoto (máquina host)
+### 5. Cliente remoto (máquina host)
 
 ```bash
 export DOCKER_HOST=192.168.56.11:2375
-docker node ls
+docker node ls   # deve listar 3 nós (1 Leader + 2 workers)
 ```
 
-### 5. Criar e escalar um serviço
+## Passo a passo do laboratório
+
+Os comandos completos estão em [commands.bash](commands.bash). Com o cluster no ar (passos acima), continue com:
 
 ```bash
 docker service create -d -p 8080:80 --replicas 3 --name nginx-service nginx:latest
@@ -230,6 +232,7 @@ vagrant destroy -f    # remove VMs
 
 ## Referências
 
+- [Subir o cluster Swarm](../docs/guias/swarm-cluster-setup.md) — guia compartilhado (módulos 11, 12 e 13)
 - [Docker Swarm mode overview](https://docs.docker.com/engine/swarm/)
 - [Manage nodes in a swarm](https://docs.docker.com/engine/swarm/manage-nodes/)
 - [Deploy services to a swarm](https://docs.docker.com/engine/swarm/services/)

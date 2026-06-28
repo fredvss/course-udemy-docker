@@ -2,19 +2,52 @@
 # 12-docker-swarm-ha-proxy — comandos do laboratório
 # Ver README.md para arquitetura, VIP vs DNSRR e HAProxy global.
 #
-# Pré-requisito: cluster Swarm do módulo 11 (DOCKER_HOST apontando para o manager).
+# Módulo autocontido — inclui Vagrantfile e bootstrap do cluster Swarm.
 
 set -euo pipefail
 
 MANAGER_IP="192.168.56.11"
+WORKER_TOKEN="<SUBSTITUIR_COM_TOKEN_DO_MANAGER>"  # docker swarm join-token worker -q
 OVERLAY_NETWORK="ha-proxy"
 NGINX_SERVICE="nginx-service"
 HAPROXY_SERVICE="haproxy-service"
 HAPROXY_IMAGE="haproxytech/haproxy-debian:2.0"
 
 # =============================================================================
-# 0. Cliente remoto — variável de ambiente
+# 0. Vagrant e bootstrap do cluster (máquina host + VMs)
 # =============================================================================
+
+vagrant_up() {
+  vagrant up
+}
+
+vagrant_ssh_manager() { vagrant ssh swarm-1; }
+vagrant_ssh_worker1() { vagrant ssh swarm-2; }
+vagrant_ssh_worker2() { vagrant ssh swarm-3; }
+
+# Executar dentro do manager (swarm-1)
+manager_init_swarm() {
+  docker swarm init --advertise-addr "${MANAGER_IP}"
+  docker node ls
+}
+
+# Editar /lib/systemd/system/docker.service antes:
+#   ExecStart=/usr/bin/dockerd -H fd:// -H tcp://0.0.0.0:2375
+manager_expose_docker_api() {
+  sudo systemctl daemon-reload
+  sudo systemctl restart docker
+  ss -lnp | grep 2375
+  docker node ls
+}
+
+manager_show_join_token() {
+  docker swarm join-token worker
+}
+
+# Executar em cada worker (swarm-2, swarm-3)
+worker_join_swarm() {
+  docker swarm join --token "${WORKER_TOKEN}" "${MANAGER_IP}:2377"
+}
 
 client_use_remote_docker() {
   export DOCKER_HOST="${MANAGER_IP}:2375"
@@ -183,13 +216,17 @@ client_logs() {
 # =============================================================================
 # Fluxo completo sugerido
 # =============================================================================
-# 1. client_use_remote_docker
-# 2. client_create_overlay_network
-# 3. client_create_nginx_vip          → inspecionar VIP
-# 4. client_switch_nginx_to_dnsrr     → comparar comportamento DNS
+# 0. vagrant_up
+# 1. manager_init_swarm               → no swarm-1
+# 2. manager_expose_docker_api        → no swarm-1 (editar docker.service antes)
+# 3. worker_join_swarm                → no swarm-2 e swarm-3
+# 4. client_use_remote_docker
+# 5. client_create_overlay_network
+# 6. client_create_nginx_vip          → inspecionar VIP
+# 7. client_switch_nginx_to_dnsrr     → comparar comportamento DNS
 #    (ou client_remove_overlay_network + recriar com client_create_nginx_dnsrr)
-# 5. node_setup_haproxy_config        → em cada nó (swarm-1, swarm-2, swarm-3)
-# 6. client_validate_haproxy_config
-# 7. client_create_haproxy_global
-# 8. client_test_load_balancer
-# 9. client_debug_dns / client_scale_nginx
+# 8. node_setup_haproxy_config        → em cada nó (swarm-1, swarm-2, swarm-3)
+# 9. client_validate_haproxy_config
+# 10. client_create_haproxy_global
+# 11. client_test_load_balancer
+# 12. client_debug_dns / client_scale_nginx
