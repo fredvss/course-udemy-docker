@@ -1,6 +1,6 @@
 # Curso Docker — Udemy
 
-Material prático de um curso de Docker: scripts de isolamento Linux, builds progressivos com Node.js, Python e Go, restart policies, Docker Compose e guias de referência sobre containers e rede.
+Material prático de um curso de Docker: scripts de isolamento Linux, builds progressivos com Node.js, Python e Go, restart policies, Docker Compose, **Docker Swarm** (com Vagrant) e guias de referência sobre containers e rede.
 
 ## Pré-requisitos
 
@@ -8,6 +8,7 @@ Material prático de um curso de Docker: scripts de isolamento Linux, builds pro
 - [Docker Engine](https://docs.docker.com/engine/install/) instalado
 - [Docker Compose v2](https://docs.docker.com/compose/) (incluso no Docker Desktop e nas instalações recentes do Engine)
 - Para o módulo 01: `sudo`, `debootstrap` ou acesso root
+- Para os módulos 11 e 12: [Vagrant](https://www.vagrantup.com/) e [VirtualBox](https://www.virtualbox.org/) (~3 GB de RAM livre)
 
 ## Estrutura do repositório
 
@@ -23,6 +24,8 @@ Material prático de um curso de Docker: scripts de isolamento Linux, builds pro
 | [08-restart-policies](08-restart-policies/) | Restart policies (`no`, `on-failure`, `always`…) | [README](08-restart-policies/README.md) |
 | [09-docker-compose](09-docker-compose/) | Compose básico — nginx, builds e `depends_on` | [README](09-docker-compose/README.md) |
 | [10-docker-compose-ghost](10-docker-compose-ghost/) | Compose avançado — Ghost + MySQL, volumes, redes, healthcheck | [README](10-docker-compose-ghost/README.md) |
+| [11-docker-swarm](11-docker-swarm/) | Swarm com Vagrant — cluster, `DOCKER_HOST`, scale de serviços | [README](11-docker-swarm/README.md) |
+| [12-docker-swarm-ha-proxy](12-docker-swarm-ha-proxy/) | Swarm — VIP vs DNSRR, HAProxy global e balanceamento | [README](12-docker-swarm-ha-proxy/README.md) |
 
 ## Documentação
 
@@ -56,9 +59,11 @@ Conceitos teóricos que sustentam o restante do curso:
 07-build-go-multi-staging → 08-restart-policies
     ↓
 09-docker-compose → 10-docker-compose-ghost
+    ↓
+11-docker-swarm → 12-docker-swarm-ha-proxy
 ```
 
-Leia os fundamentos em `docs/fundamentos/` a qualquer momento — eles complementam os exercícios práticos.
+Leia os fundamentos em `docs/fundamentos/` a qualquer momento — eles complementam os exercícios práticos. O módulo 12 depende do cluster configurado no 11.
 
 ## Comandos rápidos
 
@@ -84,6 +89,31 @@ docker compose up
 
 cd ../10-docker-compose-ghost
 docker compose up -d
+```
+
+Docker Swarm (módulos 11 e 12):
+
+```bash
+cd 11-docker-swarm
+vagrant up
+vagrant ssh swarm-1   # manager — ver README para init do Swarm
+
+export DOCKER_HOST=192.168.56.11:2375   # cliente remoto
+docker node ls
+docker service ls
+```
+
+```bash
+cd 12-docker-swarm-ha-proxy
+# cluster do módulo 11 em execução
+# ver README para rede overlay, nginx (dnsrr) e HAProxy global
+```
+
+Portainer (opcional, na máquina host):
+
+```bash
+./portainer.sh
+# https://localhost:9443
 ```
 
 ## Licença

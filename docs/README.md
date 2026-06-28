@@ -27,6 +27,8 @@ Alguns tópicos ficam junto do código que os demonstra:
 | [08-restart-policies](../08-restart-policies/) | Restart policies — guia completo com exemplos |
 | [09-docker-compose](../09-docker-compose/) | Compose básico — múltiplos serviços |
 | [10-docker-compose-ghost](../10-docker-compose-ghost/) | Ghost + MySQL — healthcheck e `service_healthy` |
+| [11-docker-swarm](../11-docker-swarm/) | Swarm com Vagrant — arquitetura, portas e `DOCKER_HOST` |
+| [12-docker-swarm-ha-proxy](../12-docker-swarm-ha-proxy/) | VIP vs DNSRR, HAProxy global e balanceamento |
 
 ## Recursos
 
@@ -46,6 +48,8 @@ course-udemy-docker/
 ├── 08-restart-policies/      ← restart policies (+ README)
 ├── 09-docker-compose/        ← compose básico (+ README)
 ├── 10-docker-compose-ghost/  ← Ghost + MySQL (+ README)
+├── 11-docker-swarm/          ← Swarm com Vagrant (+ README)
+├── 12-docker-swarm-ha-proxy/ ← VIP, DNSRR, HAProxy (+ README)
 └── docs/
     ├── README.md             ← este arquivo
     ├── fundamentos/          ← teoria Linux/containers

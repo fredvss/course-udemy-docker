@@ -1,0 +1,5 @@
+# Vagrant — estado local das VMs (UUIDs, metadados VirtualBox, etc.)
+**/.vagrant/
+
+# Logs de console gerados pelas VMs
+**/*-console.log
